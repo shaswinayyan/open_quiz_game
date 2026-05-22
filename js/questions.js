@@ -47,6 +47,15 @@ window.DEFAULT_QUESTIONS = [
     text: "A group of four people needs to cross a bridge at night. They have only one torch. A=1 min, B=2 min, C=5 min, D=10 min. What is the fastest time they can all get across?",
     options: ["14 minutes", "10 minutes", "Not enough information", "17 minutes"],
     correct: 1, aiRate: "0%", timer: 45, difficulty: "Expert"
+  },
+  {
+    id: 101,
+    text: "What is the capital of Italy?",
+    options: ["Rome", "Milan", "Venice", "Florence"],
+    correct: 0,
+    aiRate: "90%",
+    timer: 20,
+    difficulty: "Easy"
   }
 ];
 

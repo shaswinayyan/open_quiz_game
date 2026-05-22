@@ -45,8 +45,18 @@ class QuizScreen {
    * @param {Array<Array<number|null>>} teamSelections - 2D array tracking each team's answers per question.
    */
   renderQuestion(currentQ, numTeams, teamNames, teamSelections) {
-    const q = window.QUESTIONS[currentQ];
+    const qRaw = window.QUESTIONS[currentQ];
     const total = window.QUESTIONS.length;
+
+    // Robustness: ensure q has all needed fields
+    const q = {
+      text: qRaw.text || 'Error: Question text missing',
+      options: Array.isArray(qRaw.options) ? qRaw.options : ['N/A', 'N/A', 'N/A', 'N/A'],
+      correct: typeof qRaw.correct === 'number' ? qRaw.correct : 0,
+      timer: qRaw.timer || 30,
+      difficulty: qRaw.difficulty || 'Medium',
+      aiRate: qRaw.aiRate || '0%'
+    };
 
     if (this.progressFill) {
       this.progressFill.style.width = ((currentQ / total) * 100) + '%';
@@ -68,7 +78,7 @@ class QuizScreen {
         btn.className = 'option-btn';
         btn.dataset.idx = i;
         btn.disabled = true;
-        btn.innerHTML = '<span class="opt-letter">' + window.LETTERS[i] + '</span><span>' + opt + '</span>';
+        btn.innerHTML = '<span class="opt-letter">' + (window.LETTERS[i] || '?') + '</span><span>' + opt + '</span>';
         this.optionsGrid.appendChild(btn);
       });
     }
@@ -80,7 +90,7 @@ class QuizScreen {
         row.className = 'team-answer-row';
         const opts = q.options.map((o, i) => {
           const sel = teamSelections[currentQ][t] === i ? 'selected' : '';
-          const label = window.LETTERS[i] + '. ' + (o.length > 26 ? o.substring(0, 26) + '…' : o);
+          const label = (window.LETTERS[i] || '?') + '. ' + (o.length > 26 ? o.substring(0, 26) + '…' : o);
           return '<option value="' + i + '" ' + sel + '>' + label + '</option>';
         }).join('');
         row.innerHTML = `

@@ -36,12 +36,13 @@ class ScoreboardScreen {
    */
   render(numTeams, teamNames, teamSelections) {
     const scores = new Array(numTeams).fill(0);
-    const perQResult = window.QUESTIONS.map((q, qi) =>
-      teamSelections[qi].map(ans => {
+    const perQResult = window.QUESTIONS.map((q, qi) => {
+      const correctIdx = typeof q.correct === 'number' ? q.correct : 0;
+      return teamSelections[qi].map(ans => {
         if (ans === null) return 'skip';
-        return ans === q.correct ? 'correct' : 'wrong';
-      })
-    );
+        return ans === correctIdx ? 'correct' : 'wrong';
+      });
+    });
 
     perQResult.forEach((qRes) => {
       qRes.forEach((r, ti) => {
@@ -85,14 +86,20 @@ class ScoreboardScreen {
           if (r === 'wrong') return '<td class="cell-wrong">✗</td>';
           return '<td class="cell-skip">—</td>';
         }).join('');
-        const cLetter = window.LETTERS[q.correct];
-        const cText = q.options[q.correct].length > 28 ? q.options[q.correct].substring(0, 28) + '…' : q.options[q.correct];
+
+        const correctIdx = typeof q.correct === 'number' ? q.correct : 0;
+        const options = Array.isArray(q.options) ? q.options : ['N/A', 'N/A', 'N/A', 'N/A'];
+        const cLetter = window.LETTERS[correctIdx] || '?';
+        const rawText = options[correctIdx] || 'N/A';
+        const cText = rawText.length > 28 ? rawText.substring(0, 28) + '…' : rawText;
         const diffColor = window.DIFF_COLORS[q.difficulty] || '#fff';
+        const aiRate = q.aiRate || '0%';
+
         return `<tr>
           <td style="color:var(--muted);white-space:nowrap">Q${qi + 1} <span style="color:${diffColor};font-size:0.7rem">${q.difficulty}</span></td>
           ${cells}
           <td style="color:var(--correct);font-size:0.78rem;text-align:left">${cLetter}. ${cText}</td>
-          <td style="text-align:right"><span class="ai-rate-pill">AI: ${q.aiRate}</span></td>
+          <td style="text-align:right"><span class="ai-rate-pill">AI: ${aiRate}</span></td>
         </tr>`;
       }).join('');
 
