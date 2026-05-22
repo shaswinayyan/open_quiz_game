@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brain Dusk — Evening Trivia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<!-- Externalized CSS stylesheet -->
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- SETUP -->
+<div id="screen-setup" class="screen active">
+  <div class="setup-card fade-up">
+    <div class="logo">Brain<span>Dusk</span></div>
+    <div class="tagline">Evening Trivia &nbsp;·&nbsp; Host Edition</div>
+    <label class="field-label">Number of teams</label>
+    <div class="team-count-row">
+      <button class="count-btn" id="dec-teams">−</button>
+      <div class="count-display" id="team-count-display">2</div>
+      <button class="count-btn" id="inc-teams">+</button>
+    </div>
+    <label class="field-label">Team names</label>
+    <div class="team-names-grid" id="team-names-grid"></div>
+    <button class="btn-primary" id="start-btn">Start Quiz →</button>
+    <button class="btn-secondary" id="manage-questions-btn" style="margin-top: 0.75rem; background: transparent; border: 1px dashed var(--border2); color: var(--muted); padding: 0.75rem; border-radius: var(--r); font-family: var(--font-head); font-size: 0.85rem; cursor: pointer; transition: all 0.15s; width: 100%;">⚙️ Manage Questions & Timers</button>
+  </div>
+</div>
+
+<!-- ADMIN / QUESTION MANAGER -->
+<div id="screen-admin" class="screen">
+  <div class="admin-card fade-up">
+    <div class="admin-header">
+      <div class="admin-title">⚙️ Question & Timer Manager</div>
+      <button class="btn-close-admin" id="btn-close-admin">← Back to Setup</button>
+    </div>
+    
+    <div class="admin-actions">
+      <button class="action-btn btn-add" id="btn-add-question">+ Add Question</button>
+      <button class="action-btn btn-reset" id="btn-reset-questions">Reset to Defaults</button>
+      <button class="action-btn btn-export" id="btn-export-json">Export JSON</button>
+      <label class="action-btn btn-import" for="import-json-input">
+        Import JSON
+        <input type="file" id="import-json-input" accept=".json" style="display: none;" />
+      </label>
+    </div>
+
+    <div class="questions-list-container">
+      <div id="admin-questions-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- EDITOR MODAL -->
+<div id="editor-modal" class="modal-overlay">
+  <div class="modal-card">
+    <h3 id="modal-title">Edit Question</h3>
+    <form id="question-form">
+      <input type="hidden" id="edit-q-id" />
+      
+      <div class="form-group">
+        <label class="field-label">Question Text</label>
+        <textarea id="edit-q-text" required rows="3" placeholder="Enter your question here..."></textarea>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="field-label">Option A</label>
+          <input type="text" id="edit-opt-0" required placeholder="Option A" />
+        </div>
+        <div class="form-group">
+          <label class="field-label">Option B</label>
+          <input type="text" id="edit-opt-1" required placeholder="Option B" />
+        </div>
+        <div class="form-group">
+          <label class="field-label">Option C</label>
+          <input type="text" id="edit-opt-2" required placeholder="Option C" />
+        </div>
+        <div class="form-group">
+          <label class="field-label">Option D</label>
+          <input type="text" id="edit-opt-3" required placeholder="Option D" />
+        </div>
+      </div>
+
+      <div class="form-grid-3">
+        <div class="form-group">
+          <label class="field-label">Correct Option</label>
+          <select id="edit-q-correct" required>
+            <option value="0">A</option>
+            <option value="1">B</option>
+            <option value="2">C</option>
+            <option value="3">D</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="field-label">Timer (seconds)</label>
+          <input type="number" id="edit-q-timer" required min="5" max="300" />
+        </div>
+        <div class="form-group">
+          <label class="field-label">Difficulty</label>
+          <select id="edit-q-diff" required>
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+            <option value="Expert">Expert</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="field-label">AI rate (%)</label>
+        <input type="text" id="edit-q-airate" required placeholder="e.g. 45% or 0%" />
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" id="btn-cancel-edit">Cancel</button>
+        <button type="submit" class="btn-save">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div id="screen-quiz" class="screen">
+  <div class="quiz-header fade-up" style="animation-delay:0.05s">
+    <div class="quiz-logo">BrainDusk</div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="q-counter" id="q-counter">Q 1 / 8</div>
+  </div>
+  <div class="quiz-layout fade-up" style="animation-delay:0.1s">
+    <div class="question-panel">
+      <div class="q-badge" id="q-badge">Question 1</div>
+      <div class="question-text" id="q-text"></div>
+      <div class="options-grid" id="options-grid"></div>
+    </div>
+    <div class="teams-panel">
+      <div class="timer-wrap" id="timer-wrap">
+        <div class="timer-ring-wrap">
+          <svg class="timer-ring" width="44" height="44" viewBox="0 0 44 44">
+            <circle class="timer-ring-bg" cx="22" cy="22" r="18"/>
+            <circle class="timer-ring-fill" id="timer-ring-fill" cx="22" cy="22" r="18"/>
+          </svg>
+          <div class="timer-number" id="timer-number">60</div>
+        </div>
+        <div class="timer-label">
+          <strong id="timer-label-text">Time remaining</strong>
+          <span id="timer-diff-label">Difficulty: Medium</span>
+        </div>
+      </div>
+      <div class="panel-title">Team Answers</div>
+      <div id="team-answers-list"></div>
+      <div class="host-controls">
+        <div class="host-info" id="host-info">Select each team's answer, then move on. Answers & AI pass rates revealed at the end!</div>
+        <button class="btn-next" id="btn-next">Next Question →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCOREBOARD -->
+<div id="screen-scores" class="screen">
+  <div class="scoreboard-card fade-up">
+    <div class="scoreboard-title">🏆 Final Scores</div>
+    <div class="scoreboard-sub">Answers & AI pass rates revealed — here's how everyone did!</div>
+    <div id="score-rows"></div>
+    <div class="score-breakdown">
+      <div class="breakdown-title">Question-by-Question Breakdown</div>
+      <div id="breakdown-table-wrap"></div>
+    </div>
+    <button class="restart-btn" id="restart-btn">Play Again</button>
+  </div>
+</div>
+
+<!-- Import questions config and components -->
+<script src="js/questions.js"></script>
+<script src="js/components/Timer.js"></script>
+<script src="js/components/SetupScreen.js"></script>
+<script src="js/components/AdminScreen.js"></script>
+<script src="js/components/QuizScreen.js"></script>
+<script src="js/components/ScoreboardScreen.js"></script>
+<script src="js/app.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const app = new TriviaApp();
+    app.init();
+  });
+</script>
+</body>
+</html>
